@@ -5,8 +5,76 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Calculator_WPF_MVVM"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="300">
+        Title="Calculator" Height="420" Width="490"
+        Background="#5D5C61"
+        ResizeMode="NoResize">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="120"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="290"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <TextBox Margin="5" Background="#C2CAD0" FontSize="35"/>
+        
+        <StackPanel Orientation="Vertical" Grid.Row="1">
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top">
+                <Button Style="{StaticResource CalcButtonStyle}">
+                    <Image Source="/Resources/Images/degreeOfNumber.png" Height="26"/>
+                </Button>
+                <Button Style="{StaticResource CalcButtonStyle}">
+                    <Image Source="/Resources/Images/square-root.png" Height="28"/>
+                </Button>
+                <Button Style="{StaticResource CalcButtonStyle}">/</Button>
+                <Button Style="{StaticResource CalcButtonStyle}">
+                    <Image Source="/Resources/Images/delete.png" Height="28"/>
+                </Button>
+            </StackPanel>
+            
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top">
+                <Button Style="{StaticResource CalcButtonStyle}">7</Button>
+                <Button Style="{StaticResource CalcButtonStyle}">8</Button>
+                <Button Style="{StaticResource CalcButtonStyle}">9</Button>
+                <Button Style="{StaticResource CalcButtonStyle}">*</Button>
+            </StackPanel>
+            
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top">
+                <Button Style="{StaticResource CalcButtonStyle}">4</Button>
+                <Button Style="{StaticResource CalcButtonStyle}">5</Button>
+                <Button Style="{StaticResource CalcButtonStyle}">6</Button>
+                <Button Style="{StaticResource CalcButtonStyle}">-</Button>
+            </StackPanel>
+            
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top">
+                <Button Style="{StaticResource CalcButtonStyle}">1</Button>
+                <Button Style="{StaticResource CalcButtonStyle}">2</Button>
+                <Button Style="{StaticResource CalcButtonStyle}">3</Button>
+                <Button Style="{StaticResource CalcButtonStyle}">+</Button>
+            </StackPanel>
+            
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top">
+                <Button Style="{StaticResource CalcButtonStyle}">C</Button>
+                <Button Style="{StaticResource CalcButtonStyle}">0</Button>
+                <Button Style="{StaticResource CalcButtonStyle}">,</Button>
+                <Button Style="{StaticResource CalcButtonStyle}">=</Button>
+            </StackPanel>
+        </StackPanel>
 
+        <StackPanel Orientation="Vertical" Margin="5" Grid.Column="1" Grid.RowSpan="2">
+            <TextBlock Text="Журнал" TextAlignment="Center"/>
+            <ListBox Height="350" Background="#5D5C61">
+                
+            </ListBox>
+
+            
+            <Button Height="20" Width="75" HorizontalAlignment="Right"
+                    FontSize="13"
+                    Style="{StaticResource CalcButtonStyle}"
+                    Content="Очистить"/>
+        </StackPanel>
+        
     </Grid>
 </Window>
