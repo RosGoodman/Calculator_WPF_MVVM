@@ -1,8 +1,8 @@
-﻿using NLog;
-using PastingProductivityCalculationProgram.ViewModel.ViewModels.Windows;
+﻿using PastingProductivityCalculationProgram.ViewModel.ViewModels.Windows;
 using System.Windows;
 using System.Data.SQLite;
 using System.IO;
+using Serilog;
 
 namespace Calculator_WPF_MVVM
 {
@@ -11,30 +11,28 @@ namespace Calculator_WPF_MVVM
     /// </summary>
     public partial class App : Application
     {
-        static Logger _logger = LogManager.GetCurrentClassLogger();
-
         /// <summary> Кастомный стартап. </summary>
         /// <param name="e"></param>
         protected override void OnStartup(StartupEventArgs e)
         {
-            
+            Log.Logger = new LoggerConfiguration()
+                    .Enrich.FromLogContext()
+                    .WriteTo.SQLite("Log.db3")
+                    .CreateLogger();
 
             if (!File.Exists("Log.db3"))
             {
-                using (SQLiteConnection connection = new SQLiteConnection("Data Source = Log.db3; Version = 3;"))
-                using (SQLiteCommand command = new SQLiteCommand(
+                using SQLiteConnection connection = new SQLiteConnection("Data Source = Log.db3; Version = 3;");
+                using SQLiteCommand command = new SQLiteCommand(
                     "CREATE TABLE Log (Timestamp TEXT, Loglevel TEXT, Callsite TEXT, Message TEXT)",
-                    connection))
-                {
-                    connection.Open();
-                    command.ExecuteNonQuery();
-                }
+                    connection);
+                connection.Open();
+                command.ExecuteNonQuery();
             }
-            
 
-            _logger.Info("Cтарт программы.");
+            Log.Information("Cтарт программы.");
 
-            MainWindow_VM _vaiwModel = new(_logger);
+            MainWindow_VM _vaiwModel = new();
             Current.MainWindow = new MainWindow
             {
                 DataContext = _vaiwModel

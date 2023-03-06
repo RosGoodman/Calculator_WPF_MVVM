@@ -4,11 +4,8 @@ using Calculator_WPF_MVVM.Commands;
 using Calculator_WPF_MVVM.Common.DataContext;
 using Calculator_WPF_MVVM.Common.Models;
 using Calculator_WPF_MVVM.Common.Repositories;
-using Microsoft.Extensions.Configuration;
-using NLog;
-using System;
+using Serilog;
 using System.ComponentModel;
-using System.IO;
 
 namespace PastingProductivityCalculationProgram.ViewModel.ViewModels.Windows;
 
@@ -19,7 +16,6 @@ public class MainWindow_VM : ViewModelBase, INotifyPropertyChanged
     //по этому сделал агрегацию
     private readonly StackCalculation _stackCalculation = new ();
     private readonly ContextDB _contextDB = new();
-    private readonly ILogger _logger;
 
     private readonly IOperationHistoryModelRepository _operationHistoryModelRepository;
     private readonly ILogStringModelRepository _logStringModelRepository;
@@ -55,12 +51,12 @@ public class MainWindow_VM : ViewModelBase, INotifyPropertyChanged
     /////////////////////////////////////////////////////////////////////////////////
 
     /// <summary> Ctor. </summary>
-    public MainWindow_VM(ILogger logger)
+    public MainWindow_VM()
     {
         _operationHistoryModelRepository = new OperationHistoryModelRepository();
         _logStringModelRepository = new LogStringModelRepository();
-        _logger = logger;
-        _logger.Info($"Логгер встроен в {nameof(MainWindow_VM)}");
+
+        Log.Information($"Логгер встроен в {nameof(MainWindow_VM)}");
 
         CalculateCommand = new RelayCommand(CalculateCommand_Execute, CalculateCommand_CanExecute);
     }
@@ -79,7 +75,7 @@ public class MainWindow_VM : ViewModelBase, INotifyPropertyChanged
     /// <param name="param"> Параметр. </param>
     private void CalculateCommand_Execute(object param)
     {
-        _logger.Info($"{nameof(CalculateCommand_Execute)}");
+        Log.Information($"{nameof(CalculateCommand_Execute)}");
         var operationHistoryModel = new OperationHistoryModel()
         {
             CalculatedString = _calculatedString,
