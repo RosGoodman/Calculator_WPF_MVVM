@@ -7,7 +7,6 @@ namespace Calculator_WPF_MVVM.Common.DataContext;
 
 public class ContextDB : DbContext
 {
-    public DbSet<LogModel> Logs { get; set; }
     public DbSet<OperationHistoryModel> OperationHistory { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

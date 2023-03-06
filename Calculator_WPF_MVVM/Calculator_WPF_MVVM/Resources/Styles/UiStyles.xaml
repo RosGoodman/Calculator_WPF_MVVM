@@ -9,5 +9,13 @@
         <Setter Property="FontSize" Value="35"/>
         <Setter Property="FontWeight" Value="Bold"/>
     </Style>
-    
+
+    <Style TargetType="TextBlock"
+           x:Key="TextBlockStyle">
+        <Setter Property="TextAlignment"
+                Value="Right" />
+        <Setter Property="HorizontalAlignment"
+                Value="Right" />
+    </Style>
+
 </ResourceDictionary>

@@ -114,18 +114,33 @@
 
         <StackPanel Orientation="Vertical" Margin="5" Grid.Column="1" Grid.RowSpan="2">
             <TextBlock Text="Журнал" TextAlignment="Center"/>
-            <ListBox Height="370" Background="#5D5C61">
-                
+
+            <ListBox Height="350"
+                     Background="#5D5C61"
+                ItemsSource="{Binding HistoryCollection, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,2,0,0"
+                                    Orientation="Vertical">
+                            <TextBlock Style="{StaticResource TextBlockStyle}"
+                                Text="{Binding CalculatedString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock FontWeight="Bold" Style="{StaticResource TextBlockStyle}"
+                                        Text="{Binding Result, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
             </ListBox>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Height="20" Width="75" HorizontalAlignment="Right"
                     FontSize="13"
                     Style="{StaticResource CalcButtonStyle}"
+                        Command="{Binding DownloadHistoryCommand}"
                     Content="Загрузить"/>
                 <Button Height="20" Width="75" HorizontalAlignment="Right"
                     FontSize="13"
                     Style="{StaticResource CalcButtonStyle}"
+                        Command="{Binding DeleteHistoryCommand}"
                     Content="Очистить"/>
             </StackPanel>
             
