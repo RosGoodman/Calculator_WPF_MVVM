@@ -218,12 +218,41 @@ public class StackCalculationsTest
     public void BigNumbMultiple_ItShouldBeErrMessage()
     {
         //arrange
-        string calcString = "432452345234567*23452345350546757";
+        string calcString = 
+            "432452345234567234523234523452345234523452435325234333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333" +
+            "*" +
+            "234523453505467572345234532452345234523234523523454233333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333";
 
         //act
         var result = calculation.Calculate(calcString);
 
         //assert
         Assert.Equal("err", result);
+    }
+
+    [Fact]
+    public void MixingComputing_ItShouldBeEqual()
+    {
+        //arrange
+        string calcString = "5-3*(8)";
+
+        //act
+        var result = calculation.Calculate(calcString);
+
+        //assert
+        Assert.Equal("-19", result);
+    }
+
+    [Fact]
+    public void SimpleSqrt_2_ItShouldBeEqual()
+    {
+        //arrange
+        string calcString = "sqrt(9)";
+
+        //act
+        var result = calculation.Calculate(calcString);
+
+        //assert
+        Assert.Equal("3", result);
     }
 }
