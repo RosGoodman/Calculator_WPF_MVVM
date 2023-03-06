@@ -137,10 +137,11 @@ public class MainWindow_VM : ViewModelBase, INotifyPropertyChanged
             CalculatedString = _calculatedString,
         };
 
-        CalculatedString = _stackCalculation.Calculate(_calculatedString);
+        _calculatedString = _stackCalculation.Calculate(_calculatedString);
         operationHistoryModel.Result = CalculatedString;
 
         _operationHistoryModelRepository.Add(operationHistoryModel);
+        OnPropertyChanged(nameof(CalculatedString));
     }
 
     #endregion

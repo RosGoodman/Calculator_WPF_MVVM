@@ -1,4 +1,5 @@
 ﻿
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -10,9 +11,10 @@ public class StackCalculation
     private const string ErrCalc = "err";
     private readonly OperationPriority _priority = new();
 
+    private readonly List<string> _calcList = new();
+
     private readonly Stack<char> _chars = new();
-    private readonly Stack<char> _sqrtChars = new();
-    private readonly Stack<decimal> _numbs = new();
+    private readonly Stack<double> _numbs = new();
 
     /// <summary> Вычислить выражение в строке. </summary>
     /// <param name="calcString"> Вычисляемая строка. </param>
@@ -25,13 +27,24 @@ public class StackCalculation
         try
         {
             AddNumbsAndSymbolsToStack(calcString);
-            StackCalc();
+            StackCalc(true);
+            if (_chars.Count == 1) IntermediateCalculation(_chars.Pop());
         }
         catch (DivideByZeroException) { return ErrCalc; }
         catch (OverflowException) { return ErrCalc; }
         catch (Exception) { return ErrCalc; }
 
-        return _numbs.Pop().ToString();
+        var result = _numbs.Pop().ToString();
+        CleanProps();
+
+        return result;
+    }
+
+    private void CleanProps()
+    {
+        _calcList.Clear();
+        _chars.Clear();
+        _numbs.Clear();
     }
 
     /// <summary> Проверка стркоки на наличие лишних символов. </summary>
@@ -52,19 +65,40 @@ public class StackCalculation
         calcString = calcString.Replace(".", ",");
         calcString = calcString.Replace(" ", "");
 
-        StringBuilder sb = new ();
+        //для визуального упрощения разбираем строку на числа и операторы
+        AddNumbsAndOperatorsToStack(calcString);
 
+        bool isNumb;
+        for (int i = 0; i < _calcList.Count; i++)
+        {
+            isNumb = double.TryParse(_calcList[i], out double numb);
+            if (isNumb) 
+            { 
+                _numbs.Push(numb);
+                continue;
+            }
+
+            //добавление символов операторов и скобок в стек
+            AddCharToStack(_calcList[i][0]);
+        }
+    }
+
+    /// <summary> Добавить все числа и операторы в стек. </summary>
+    /// <param name="calcString"> Вычисляемая строка. </param>
+    /// <remarks> Метод облегчает работу с циклом по операторам и числам в стеках. </remarks>
+    private void AddNumbsAndOperatorsToStack(string calcString)
+    {
+        StringBuilder sb = new();
+
+        //создаем коллекцию из чисел и операторов
         for (int i = 0; i < calcString.Length; i++)
         {
             //добавление числовых символов в стек
             if (char.IsNumber(calcString[i]) || calcString[i] == ',' || calcString[i] == '.')
             {
                 sb.Append(calcString[i]);
-                if(i == calcString.Length - 1)
-                {
-                    TryAddNumbInStack(sb.ToString());
-                    StackCalc();
-                }
+                if (i == calcString.Length - 1)
+                    _calcList.Add(sb.ToString());
 
                 continue;
             }
@@ -72,16 +106,11 @@ public class StackCalculation
             //если число из билдера еще не добавлено в стек, то добавляем
             if (sb.Length > 0)
             {
-                TryAddNumbInStack(sb.ToString());
-                sb = new ();
+                _calcList.Add(sb.ToString());
+                sb = new();
             }
 
-            //добавлений символов корня в стек
-            if (calcString[i] == 's')
-                AddSqrtCharToStack(calcString[i]);
-
-            //добавление символов операторов и скобок в стек
-            AddCharToStack(calcString[i]);
+            _calcList.Add(calcString[i].ToString());
         }
     }
 
@@ -90,50 +119,29 @@ public class StackCalculation
     private void AddCharToStack(char c)
     {
         _chars.Push(c);
-        OperatorAddedToStack();
-    }
-
-    /// <summary> Попытаться добавить конвертируемое число в стек. </summary>
-    /// <param name="str"> Строка, которая будет преобразована и добавлена в стек чисел. </param>
-    private void TryAddNumbInStack(string str)
-    {
-        bool isNumb = decimal.TryParse(str, out decimal numb);
-        if (isNumb) _numbs.Push(numb);
-    }
-
-    /// <summary> Добавить символ корня в стек. </summary>
-    /// <param name="c"> Добавляемый символ. </param>
-    private void AddSqrtCharToStack(char c)
-        => _sqrtChars.Append(c);
-
-    /// <summary> Действия после добавления нового оператора в стек. </summary>
-    private void OperatorAddedToStack()
-    {
-        if (_chars.Count < 2 || _chars.Peek() == '(') return;
+        if (_chars.Count < 2 || _chars.Peek() == '(' || _numbs.Count == 0) return;
         StackCalc();
     }
 
-    /// <summary> Вычисление в текущем состоянии стрека. </summary>
-    private void StackCalc()
+    /// <summary> Рассчет в стеке на текущий момент. </summary>
+    /// <param name="addedAllOperators"> Параметр, указывающий, что все операторы добавлены в стек. </param>
+    private void StackCalc(bool addedAllOperators = false)
     {
-        //проверка приоритетов последних двух операторов
-        if(_chars.Count == 0) return;
+        if(_chars.Count < 2) return;
         char lastChar = _chars.Pop();
+        char prevChar = _chars.Pop();
 
-        //если оператор последний, то вычисляем без условий
-        if(_chars.Count == 0)
+        if(lastChar == 's')
         {
-            IntermediateCalculation(lastChar);
+            _numbs.Push(Math.Sqrt(_numbs.Pop()));
+            _chars.Push(prevChar);
+            StackCalc();
             return;
         }
 
-        var prevChar = _chars.Pop();
-
-        //если приоритет последнего добавленного оператора выше, то ничего не считаем.
-        //также, если символ открывающейся скобки
-        if (_priority.Priority.GetValueOrDefault(lastChar) > _priority.Priority.GetValueOrDefault(prevChar) ||
-            prevChar == '(' && lastChar != ')' ||
-            lastChar == '(' && prevChar == 's')
+        if(!addedAllOperators && (_priority.Priority.GetValueOrDefault(lastChar) > _priority.Priority.GetValueOrDefault(prevChar) ||
+            lastChar == '(' ||
+            (prevChar == '(' && lastChar != ')')))
         {
             //возвращаем все на место и выходим
             _chars.Push(prevChar);
@@ -145,27 +153,27 @@ public class StackCalculation
         while (lastChar == ')' && prevChar != '(')
         {
             IntermediateCalculation(prevChar);
-            if (_chars.Count > 0) prevChar = _chars.Pop();
-
-            if(prevChar == '(' && lastChar == ')')
+            if (_chars.Count > 0)
             {
-                _chars.Push(prevChar);
-                _chars.Push(lastChar);
+                prevChar = _chars.Pop();
                 StackCalc();
+                return;
             }
+            else
+                return;
         }
 
-        //схлопывание скобок с проверкой наличия корня
-        while (lastChar == ')' && prevChar == '(')
+        if (prevChar == '(' && lastChar == ')')
         {
-            if (_chars.Count == 0) break;
+            //если ничего кроме скобок, то схлопываем
+            if (_chars.Count == 0) return;
 
-            //если следующий оператор - корень
-            if (_chars.Peek() == 's')
-            {
-                _chars.Pop();
-                _numbs.Push((decimal)Math.Sqrt((double)_numbs.Pop()));
-            }
+            ////если следующий оператор - корень
+            //if (_chars.Peek() == 's')
+            //{
+            //    _chars.Pop();
+            //    _numbs.Push(Math.Sqrt((double)_numbs.Pop()));
+            //}
 
             StackCalc();
             return;
@@ -173,31 +181,32 @@ public class StackCalculation
 
         //если приоритетность последнего добавленного ниже или равна предпоследнему, то выполняем вычисление с предпоследним
         //за тем возвращаем в стек последний оператор
-        while (prevChar != '(' && prevChar != ')' && 
+        while (prevChar != '(' && prevChar != ')' &&
             _priority.Priority.GetValueOrDefault(lastChar) <= _priority.Priority.GetValueOrDefault(prevChar))
         {
             IntermediateCalculation(prevChar);
 
-            if (_chars.Count != 0 && _chars.Peek() == '(')
+            if (_chars.Count > 0 && _chars.Peek() == '(')
             {
                 _chars.Push(lastChar);
                 return;
             }
 
+            _chars.Push(lastChar);
+
             if (_chars.Count > 0)
             {
-                prevChar = _chars.Pop();
-                if (_chars.Count == 0)
-                {
-                    _chars.Push(prevChar);
-                    break;
-                }
-            }  
-
-            if (_chars.Count == 0) break;
+                StackCalc();
+                return;
+            }
         }
 
-        _chars.Push(lastChar);
+        if (addedAllOperators)
+        {
+            IntermediateCalculation(lastChar);
+            _chars.Push(prevChar);
+            StackCalc();
+        }
     }
 
     /// <summary> Промежуточное вычисление двух чисел. </summary>
@@ -205,15 +214,19 @@ public class StackCalculation
     /// <returns> Результат вычисления. </returns>
     private void IntermediateCalculation(char op)
     {
-        //забираем числа и оператор
-        var secondNumb = _numbs.Pop();
-        if(_numbs.Count == 0)
+        if (op == 's')
         {
-            _numbs.Push(secondNumb);
+            _numbs.Push(Math.Sqrt(_numbs.Pop()));
             return;
         }
 
+        if (_numbs.Count < 2) return;
+
+        //забираем числа и оператор
+        var secondNumb = _numbs.Pop();
         var firstNumb = _numbs.Pop();
+
+        
 
         //производим калькуляцию
         _numbs.Push(NambsCalculate(firstNumb, secondNumb, op));
@@ -221,16 +234,23 @@ public class StackCalculation
 
     /// <summary> Вычисление посредством стека. </summary>
     /// <returns> Результат вычисления. </returns>
-    private decimal NambsCalculate(decimal firstNumb, decimal secondNumb, char op)
+    private double NambsCalculate(double firstNumb, double secondNumb, char op)
     {
-        return op switch
+        Debug.Print($"{firstNumb}  {op}  {secondNumb}");
+
+        var result = op switch
         {
             '+' => firstNumb + secondNumb,
             '-' => firstNumb - secondNumb,
             '*' => firstNumb * secondNumb,
             '/' => firstNumb / secondNumb,
-            '^' => (decimal)Math.Pow((double)firstNumb, (double)secondNumb),
+            '^' => Math.Pow(firstNumb, secondNumb),
             _ => 0,
         };
+
+        if (double.IsInfinity(result))
+            throw new DivideByZeroException();
+        else
+            return result;
     }
 }
